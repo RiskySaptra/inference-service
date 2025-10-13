@@ -1,12 +1,23 @@
-# Dataset configuration for YOLOv8 training.
-
-# Paths to the training and validation data
-train: ./dataset/train/images
-val: ./dataset/valid/images
-test: ./dataset/test/images
-
-# Number of classes
+names:
+- .
+- '0'
+- '1'
+- '2'
+- '3'
+- '4'
+- '5'
+- '6'
+- '7'
+- '8'
+- '9'
 nc: 11
-
-# Class names
-names: ['.', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9']
+path: datasets/4dc6b598-96b0-4063-955c-cf81c2d550e5
+roboflow:
+  license: CC BY 4.0
+  project: ssc-qazd6-xquu2
+  url: https://universe.roboflow.com/testing-wvfkd/ssc-qazd6-xquu2/dataset/14
+  version: 14
+  workspace: testing-wvfkd
+test: test/images
+train: train/images
+val: valid/images

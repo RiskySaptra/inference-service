@@ -1,5 +1,9 @@
 fastapi
-uvicorn[standard]
+uvicorn
 python-multipart
 ultralytics
 Pillow
+PyYAML
+pytest
+httpx
+pydantic-settings

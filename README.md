@@ -1,6 +1,6 @@
-# YOLOv8 Inference API
+# YOLOv8 Inference and Retraining API
 
-This project provides a simple and scalable API for performing object detection using a custom YOLOv8 model. The API is built with FastAPI and can be easily deployed as a Docker container.
+This project provides a robust and scalable API for performing object detection using a custom YOLOv8 model. The API is built with FastAPI and includes features such as automated retraining, persistent job storage, and API key security.
 
 ## Project Structure
 
@@ -8,8 +8,18 @@ This project provides a simple and scalable API for performing object detection 
 .
 ├── Dockerfile
 ├── main.py
+├── config.py
+├── database.py
+├── security.py
+├── retraining_worker.py
+├── routers/
+│   ├── predict.py
+│   └── retrain.py
+├── tests/
+│   ├── test_predict.py
+│   └── test_retrain.py
 ├── models/
-│   └── your_model.pt  <-- Place your custom model here
+│   └── your_model.pt
 └── requirements.txt
 ```
 
@@ -28,9 +38,13 @@ This project provides a simple and scalable API for performing object detection 
     cd <your-repo-directory>
     ```
 
-2.  **Place your model:**
-    - Put your custom YOLOv8 model file (e.g., `your_model.pt`) into the `models/` directory.
-    - Update the model path in `main.py` if your filename is different.
+2.  **Configure the application:**
+    - Create a `.env` file in the root directory and add the following environment variables:
+      ```
+      MODEL_PATH=models/your_model.pt
+      API_KEY=your-secret-api-key
+      ```
+    - Place your custom YOLOv8 model file (e.g., `your_model.pt`) into the `models/` directory.
 
 3.  **Run with Docker Compose:**
     ```bash
@@ -40,10 +54,14 @@ This project provides a simple and scalable API for performing object detection 
 
 ## API Usage
 
+All endpoints are protected by an API key. You must include the `X-API-Key` header in your requests.
+
 ### Predict Endpoint
 
 - **URL:** `/predict/`
 - **Method:** `POST`
+- **Headers:**
+  - `X-API-Key`: Your secret API key.
 - **Body:** `multipart/form-data`
   - `file`: The image file to be processed.
 - **Query Parameters:**
@@ -53,58 +71,45 @@ This project provides a simple and scalable API for performing object detection 
 #### Example Request (using cURL)
 
 ```bash
-curl -X POST "http://localhost:80/predict/?confidence=0.7&overlap=0.6" -H "accept: application/json" -H "Content-Type: multipart/form-data" -F "file=@/path/to/your/image.jpg"
+curl -X POST "http://localhost:80/predict/?confidence=0.7&overlap=0.6" -H "accept: application/json" -H "X-API-Key: your-secret-api-key" -H "Content-Type: multipart/form-data" -F "file=@/path/to/your/image.jpg"
 ```
 
-#### Example Response
+### Automated Retraining API
 
-```json
-{
-  "predictions": [
-    {
-      "x": 229,
-      "y": 297,
-      "width": 180,
-      "height": 228,
-      "confidence": 0.95,
-      "class": "0",
-      "class_id": 1,
-      "detection_id": "03d12bb9-7809-4493-bddc-ab0b3fb13666"
-    }
-  ]
-}
-```
-
-## Automated Retraining API
-
-This project includes an API for automated retraining of the YOLOv8 model.
-
-### Upload and Retrain Endpoint
+#### Upload and Retrain Endpoint
 
 - **URL:** `/retrain/upload/`
 - **Method:** `POST`
+- **Headers:**
+  - `X-API-Key`: Your secret API key.
 - **Body:** `multipart/form-data`
   - `file`: A ZIP file containing the new dataset in YOLOv8 format.
 
-This endpoint kicks off the retraining pipeline in the background and returns a `task_id`.
-
 #### Example Request (using cURL)
 
 ```bash
-curl -X POST "http://localhost:80/retrain/upload/" -H "accept: application/json" -H "Content-Type: multipart/form-data" -F "file=@/path/to/your/dataset.zip"
+curl -X POST "http://localhost:80/retrain/upload/" -H "accept: application/json" -H "X-API-Key: your-secret-api-key" -H "Content-Type: multipart/form-data" -F "file=@/path/to/your/dataset.zip"
 ```
 
-### Check Retraining Status Endpoint
+#### Check Retraining Status Endpoint
 
 - **URL:** `/retrain/status/{task_id}`
 - **Method:** `GET`
-
-This endpoint allows you to check the status of a retraining job.
+- **Headers:**
+  - `X-API-Key`: Your secret API key.
 
 #### Example Request (using cURL)
 
 ```bash
-curl -X GET "http://localhost:80/retrain/status/your-task-id" -H "accept: application/json"
+curl -X GET "http://localhost:80/retrain/status/your-task-id" -H "accept: application/json" -H "X-API-Key: your-secret-api-key"
+```
+
+## Testing
+
+To run the tests, use the following command:
+
+```bash
+pytest
 ```
 
 ## Local Development (Without Docker)

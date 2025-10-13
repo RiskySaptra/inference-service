@@ -123,8 +123,7 @@ models/
 *.onnx
 
 # Datasets
-dataset/
-dataset-1.yolov8.zip
+datasets/ 
 
 # Training runs
 training_runs/
