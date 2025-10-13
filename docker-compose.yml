@@ -8,9 +8,9 @@ services:
     volumes:
       - ./models:/app/models
       - ./inference_images:/app/inference_images
-      - ./retraining_db:/app/data
+      - ./app_data:/app/data
       - ./datasets:/app/datasets
-      - ./runs:/app/runs
+      - ./training_runs:/app/training_runs
     deploy:
       resources:
         reservations:

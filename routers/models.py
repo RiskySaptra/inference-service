@@ -4,21 +4,24 @@ from config import settings
 from security import get_api_key
 from pydantic import BaseModel
 from routers import predict
+from database import set_active_model as db_set_active_model, get_active_model_task_id
 
 router = APIRouter(dependencies=[Depends(get_api_key)])
-
-ACTIVE_MODEL_FILE = "active_model.txt"
 
 class Model(BaseModel):
     task_id: str
 
 def get_active_model():
-    """Gets the path of the active model."""
-    if not os.path.exists(ACTIVE_MODEL_FILE):
+    """Gets the path of the active model from the database."""
+    task_id = get_active_model_task_id()
+    if not task_id:
         return settings.MODEL_PATH  # Default model
-    with open(ACTIVE_MODEL_FILE, 'r') as f:
-        task_id = f.read().strip()
-    return f"training_runs/{task_id}/weights/best.pt"
+    
+    model_path = f"training_runs/{task_id}/weights/best.pt"
+    if not os.path.exists(model_path):
+        # Fallback to default if the active model is not found
+        return settings.MODEL_PATH
+    return model_path
 
 @router.get("/models/")
 def list_models():
@@ -38,8 +41,7 @@ def set_active_model(model: Model):
     if not os.path.exists(model_path):
         raise HTTPException(status_code=404, detail="Model not found")
     
-    with open(ACTIVE_MODEL_FILE, 'w') as f:
-        f.write(model.task_id)
+    db_set_active_model(model.task_id)
     
     # Reload the model in the predict router
     predict.load_model()

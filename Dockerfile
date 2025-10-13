@@ -28,7 +28,7 @@ RUN pip install --verbose --no-cache-dir -r requirements.txt
 COPY . .
 
 # Create data directory for volume
-RUN mkdir -p /app/data
+RUN mkdir -p /app/data /app/training_runs
 
 # Change ownership
 RUN chown -R app:app /app

@@ -26,3 +26,17 @@ def get_job_status(task_id: str):
     """
     with get_db() as db:
         return db.get(task_id)
+
+def set_active_model(task_id: str):
+    """
+    Set the active model in the database.
+    """
+    with get_db() as db:
+        db['__active_model__'] = task_id
+
+def get_active_model_task_id() -> str:
+    """
+    Get the active model task_id from the database.
+    """
+    with get_db() as db:
+        return db.get('__active_model__')
