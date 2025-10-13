@@ -1,0 +1,19 @@
+version: '3.8'
+
+services:
+  api:
+    build: .
+    ports:
+      - "80:80"
+    volumes:
+      - ./models:/app/models
+      - ./inference_images:/app/inference_images
+      - ./dataset:/app/dataset
+      - ./training_runs:/app/training_runs
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
