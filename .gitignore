@@ -117,10 +117,10 @@ dmypy.json
 .vscode/
 
 # Models
-models/
-*.pt
-*.pth
-*.onnx
+# models/
+# *.pt
+# *.pth
+# *.onnx
 
 # Datasets
 datasets/ 
