@@ -8,7 +8,7 @@ services:
     volumes:
       - ./models:/app/models
       - ./inference_images:/app/inference_images
-      - ./retraining_jobs.db:/app/retraining_jobs.db
+      - retraining_db:/app/data
       - ./datasets:/app/datasets
       - ./runs:/app/runs
     deploy:
@@ -25,3 +25,6 @@ services:
       timeout: 30s
       retries: 3
       start_period: 5s
+
+volumes:
+  retraining_db:

@@ -9,6 +9,7 @@ class Settings(BaseSettings):
     INFERENCE_IMAGES_PATH: str = "inference_images"
     DATASETS_PATH: str = "datasets"
     API_KEY: str = "your-secret-api-key"
+    DATABASE_URL: str = "/app/data/retraining_jobs.db"
 
     class Config:
         """

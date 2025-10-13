@@ -1,14 +1,13 @@
 import shelve
 from contextlib import contextmanager
-
-DB_PATH = "retraining_jobs.db"
+from config import settings
 
 @contextmanager
 def get_db():
     """
     Context manager to get a database connection.
     """
-    db = shelve.open(DB_PATH)
+    db = shelve.open(settings.DATABASE_URL)
     try:
         yield db
     finally:
