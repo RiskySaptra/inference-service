@@ -27,6 +27,9 @@ RUN pip install --verbose --no-cache-dir -r requirements.txt
 # Copy application code
 COPY . .
 
+# Create data directory for volume
+RUN mkdir -p /app/data
+
 # Change ownership
 RUN chown -R app:app /app
 
