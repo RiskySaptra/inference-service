@@ -8,6 +8,7 @@ WORKDIR /app
 COPY requirements.txt .
 
 # Install system dependencies
+ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get update && \
     apt-get install -y git libgl1 libglib2.0-0 ffmpeg && \
     rm -rf /var/lib/apt/lists/*
