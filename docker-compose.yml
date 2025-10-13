@@ -1,12 +1,10 @@
-version: '3.8'
-
 services:
   api:
     build: .
     env_file:
       - .env
     ports:
-      - "80:80"
+      - "8000:8000"
     volumes:
       - ./models:/app/models
       - ./inference_images:/app/inference_images
@@ -14,10 +12,10 @@ services:
       - ./retraining_jobs.db:/app/retraining_jobs.db
       - ./datasets:/app/datasets
       - ./runs:/app/runs
-    # deploy:
-    #   resources:
-    #     reservations:
-    #       devices:
-    #         - driver: nvidia
-    #           count: 1
-    #           capabilities: [gpu]
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
