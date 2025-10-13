@@ -1,16 +1,17 @@
 from ultralytics import YOLO
 import os
 import shutil
+from routers.models import get_active_model
 
-def evaluate_and_promote():
+def evaluate_and_promote(task_id: str):
     """
     Evaluates the newly trained model and promotes it if it performs better.
     """
     # Path to the new model (best.pt from the latest training run)
-    new_model_path = 'training_runs/latest_run/weights/best.pt'
+    new_model_path = f'training_runs/{task_id}/weights/best.pt'
 
     # Path to the current production model
-    prod_model_path = 'models/v1.pt'  # IMPORTANT: Update this to your current best model
+    prod_model_path = get_active_model()
 
     # Check if a new model was trained
     if not os.path.exists(new_model_path):
@@ -50,4 +51,4 @@ def evaluate_and_promote():
         print("Production model performs better. Keeping the current model.")
 
 if __name__ == '__main__':
-    evaluate_and_promote()
+    evaluate_and_promote("task_id_from_cli")

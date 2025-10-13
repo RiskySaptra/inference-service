@@ -29,7 +29,7 @@ async def upload_and_retrain(
 
     # Start the background task
     background_tasks.add_task(run_retraining_pipeline, task_id, zip_path)
-    set_job_status(task_id, "Retraining started")
+    set_job_status(task_id, "Retraining started", progress="0%")
 
     return {"task_id": task_id, "status": "Retraining started"}
 
@@ -38,7 +38,7 @@ def get_retraining_status(task_id: str):
     """
     Get the status of a retraining job.
     """
-    status = get_job_status(task_id)
-    if status is None:
+    job_info = get_job_status(task_id)
+    if job_info is None:
         raise HTTPException(status_code=404, detail="Task not found")
-    return {"task_id": task_id, "status": status}
+    return {"task_id": task_id, "status": job_info.get("status"), "progress": job_info.get("progress")}

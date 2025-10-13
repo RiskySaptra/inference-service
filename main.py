@@ -3,7 +3,7 @@ from fastapi.responses import JSONResponse
 from config import settings
 import os
 import logging
-from routers import predict, retrain
+from routers import predict, retrain, models
 
 # --- Logging Configuration ---
 logging.basicConfig(level=logging.INFO)
@@ -30,6 +30,7 @@ async def generic_exception_handler(request: Request, exc: Exception):
 # --- Routers ---
 app.include_router(predict.router)
 app.include_router(retrain.router)
+app.include_router(models.router)
 
 # --- Startup Operations ---
 @app.on_event("startup")

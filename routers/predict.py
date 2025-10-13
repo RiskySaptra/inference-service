@@ -6,6 +6,7 @@ import os
 from ultralytics import YOLO
 from config import settings
 from security import get_api_key
+from routers.models import get_active_model
 
 router = APIRouter(dependencies=[Depends(get_api_key)])
 
@@ -17,7 +18,8 @@ def load_model():
     """
     global model
     try:
-        model = YOLO(settings.MODEL_PATH)
+        model_path = get_active_model()
+        model = YOLO(model_path)
         print("Model loaded successfully")
     except Exception as e:
         print(f"Error loading model: {e}")

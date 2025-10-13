@@ -14,7 +14,8 @@ This project provides a robust and scalable API for performing object detection 
 ├── retraining_worker.py
 ├── routers/
 │   ├── predict.py
-│   └── retrain.py
+│   ├── retrain.py
+│   └── models.py
 ├── tests/
 │   ├── test_predict.py
 │   └── test_retrain.py
@@ -102,6 +103,65 @@ curl -X POST "http://localhost:80/retrain/upload/" -H "accept: application/json"
 
 ```bash
 curl -X GET "http://localhost:80/retrain/status/your-task-id" -H "accept: application/json" -H "X-API-Key: your-secret-api-key"
+```
+
+##### Example Response
+
+```json
+{
+"task_id": "your-task-id",
+"status": "training model",
+"progress": "45.20%"
+}
+```
+
+### Model Management API
+
+#### List Models Endpoint
+
+- **URL:** `/models/`
+- **Method:** `GET`
+- **Headers:**
+- `X-API-Key`: Your secret API key.
+
+##### Example Request (using cURL)
+
+```bash
+curl -X GET "http://localhost:80/models/" -H "accept: application/json" -H "X-API-Key: your-secret-api-key"
+```
+
+##### Example Response
+
+```json
+{
+"models": [
+"task-id-1",
+"task-id-2"
+]
+}
+```
+
+#### Set Active Model Endpoint
+
+- **URL:** `/models/set_active/`
+- **Method:** `POST`
+- **Headers:**
+- `X-API-Key`: Your secret API key.
+- **Body:** `application/json`
+- `task_id`: The ID of the model to set as active.
+
+##### Example Request (using cURL)
+
+```bash
+curl -X POST "http://localhost:80/models/set_active/" -H "accept: application/json" -H "X-API-Key: your-secret-api-key" -H "Content-Type: application/json" -d '{"task_id": "your-task-id"}'
+```
+
+##### Example Response
+
+```json
+{
+"message": "Model your-task-id set as active and reloaded"
+}
 ```
 
 ## Testing

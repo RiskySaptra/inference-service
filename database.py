@@ -13,16 +13,16 @@ def get_db():
     finally:
         db.close()
 
-def set_job_status(task_id: str, status: str):
+def set_job_status(task_id: str, status: str, progress=None):
     """
-    Set the status of a retraining job.
+    Set the status and progress of a retraining job.
     """
     with get_db() as db:
-        db[task_id] = status
+        db[task_id] = {"status": status, "progress": progress}
 
-def get_job_status(task_id: str) -> str:
+def get_job_status(task_id: str):
     """
-    Get the status of a retraining job.
+    Get the status and progress of a retraining job.
     """
     with get_db() as db:
         return db.get(task_id)
