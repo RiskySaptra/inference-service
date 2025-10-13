@@ -1,5 +1,5 @@
 services:
-  api:
+  ai-api:
     build: .
     env_file:
       - .env
@@ -8,7 +8,6 @@ services:
     volumes:
       - ./models:/app/models
       - ./inference_images:/app/inference_images
-      - ./temp_zip:/app/temp_zip
       - ./retraining_jobs.db:/app/retraining_jobs.db
       - ./datasets:/app/datasets
       - ./runs:/app/runs
@@ -20,3 +19,9 @@ services:
               count: 1
               capabilities: [gpu]
     runtime: nvidia
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/"]
+      interval: 30s
+      timeout: 30s
+      retries: 3
+      start_period: 5s

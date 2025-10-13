@@ -7,7 +7,7 @@ class Settings(BaseSettings):
     MODEL_PATH: str = "models/v1.pt"
     DEVICE: str = "cpu"
     INFERENCE_IMAGES_PATH: str = "inference_images"
-    TEMP_ZIP_PATH: str = "temp_zip"
+    DATASETS_PATH: str = "datasets"
     API_KEY: str = "your-secret-api-key"
 
     class Config:

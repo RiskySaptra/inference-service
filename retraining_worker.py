@@ -5,6 +5,7 @@ import yaml
 from train import train_model
 from evaluate import evaluate_and_promote
 from database import set_job_status
+from config import settings
 
 def run_retraining_pipeline(task_id: str, zip_path: str):
     """
@@ -15,7 +16,7 @@ def run_retraining_pipeline(task_id: str, zip_path: str):
     try:
         # Step 1: Unzip the dataset
         set_job_status(task_id, "unzipping dataset")
-        dataset_path = f"datasets/{task_id}"
+        dataset_path = os.path.join(settings.DATASETS_PATH, task_id)
         with zipfile.ZipFile(zip_path, 'r') as zip_ref:
             zip_ref.extractall(dataset_path)
         

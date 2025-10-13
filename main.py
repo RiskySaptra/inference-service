@@ -38,8 +38,9 @@ async def startup_event():
     Create directories on startup.
     """
     os.makedirs(settings.INFERENCE_IMAGES_PATH, exist_ok=True)
-    os.makedirs(settings.TEMP_ZIP_PATH, exist_ok=True)
+    os.makedirs(settings.DATASETS_PATH, exist_ok=True)
     logger.info("Directories created successfully")
+    predict.load_model()
 
 # --- Root Endpoint ---
 @app.get("/")

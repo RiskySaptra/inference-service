@@ -1,0 +1,25 @@
+# Git
+.git
+.gitignore
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+
+# Tests
+tests/
+
+# IDEs and editors
+.idea/
+.vscode/
+*.swp
+
+# Other
+README.md
+docker-compose.yml
+retraining_jobs.db

@@ -9,12 +9,18 @@ from security import get_api_key
 
 router = APIRouter(dependencies=[Depends(get_api_key)])
 
-# Load the YOLOv8 model
-try:
-    model = YOLO(settings.MODEL_PATH)
-except Exception as e:
-    print(f"Error loading model: {e}")
-    model = None
+model = None
+
+def load_model():
+    """
+    Load the YOLOv8 model.
+    """
+    global model
+    try:
+        model = YOLO(settings.MODEL_PATH)
+        print("Model loaded successfully")
+    except Exception as e:
+        print(f"Error loading model: {e}")
 
 @router.post("/predict/")
 async def predict(
@@ -25,7 +31,7 @@ async def predict(
     """
     Endpoint to receive an image and return YOLOv8 predictions.
     """
-    if not model:
+    if model is None:
         raise HTTPException(status_code=503, detail="Model is not loaded")
 
     # Read the image file

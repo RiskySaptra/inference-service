@@ -1,28 +1,31 @@
 from fastapi import APIRouter, File, UploadFile, BackgroundTasks, HTTPException, Depends
 import uuid
 import shutil
-import os
+import tempfile
 from retraining_worker import run_retraining_pipeline
-from config import settings
 from database import set_job_status, get_job_status
 from security import get_api_key
 
-router = APIRouter(dependencies=[Depends(get_api_key)])
+router = APIRouter()
 
-@router.post("/retrain/upload/")
+@router.post("/retrain/upload/", dependencies=[Depends(get_api_key)])
 async def upload_and_retrain(
-    file: UploadFile = File(...),
-    background_tasks: BackgroundTasks = BackgroundTasks()
+    background_tasks: BackgroundTasks,
+    file: UploadFile = File(...)
 ):
     """
     Upload a new dataset and start the retraining pipeline in the background.
     """
     task_id = str(uuid.uuid4())
     
-    # Save the uploaded zip file
-    zip_path = os.path.join(settings.TEMP_ZIP_PATH, f"{task_id}.zip")
-    with open(zip_path, "wb") as buffer:
-        shutil.copyfileobj(file.file, buffer)
+    # Save the uploaded zip file to a temporary file
+    try:
+        # Create a temporary file that is not deleted on close
+        with tempfile.NamedTemporaryFile(delete=False, suffix=".zip") as tmp_file:
+            shutil.copyfileobj(file.file, tmp_file)
+            zip_path = tmp_file.name
+    finally:
+        file.file.close()
 
     # Start the background task
     background_tasks.add_task(run_retraining_pipeline, task_id, zip_path)
