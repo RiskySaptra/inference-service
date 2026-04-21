@@ -1,8 +1,8 @@
 from pydantic_settings import BaseSettings
 
 class Settings(BaseSettings):
-    MODEL_PATH: str = "models/best.pt"
-    DEVICE: str = "cpu"
+    MODEL_PATH: str = "models/testing.pt"
+    DEVICE: str = "0"
     INFERENCE_IMAGES_PATH: str = "inference_images"
     API_KEY: str = "your-secret-api-key"
 
