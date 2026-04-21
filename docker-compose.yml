@@ -8,17 +8,9 @@ services:
     volumes:
       - ./models:/app/models
       - ./inference_images:/app/inference_images
-      - ./app_data:/app/data
-      - ./datasets:/app/datasets
-      - ./training_runs:/app/training_runs
-    deploy:
-      resources:
-        reservations:
-          devices:
-            - driver: nvidia
-              count: 1
-              capabilities: [gpu]
     runtime: nvidia
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=all
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/"]
       interval: 30s

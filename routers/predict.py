@@ -6,20 +6,15 @@ import os
 from ultralytics import YOLO
 from config import settings
 from security import get_api_key
-from routers.models import get_active_model
 
 router = APIRouter(dependencies=[Depends(get_api_key)])
 
 model = None
 
 def load_model():
-    """
-    Load the YOLOv8 model.
-    """
     global model
     try:
-        model_path = get_active_model()
-        model = YOLO(model_path)
+        model = YOLO(settings.MODEL_PATH)
         print("Model loaded successfully")
     except Exception as e:
         print(f"Error loading model: {e}")
@@ -30,30 +25,22 @@ async def predict(
     confidence: float = Query(0.5, ge=0.0, le=1.0),
     overlap: float = Query(0.5, ge=0.0, le=1.0)
 ):
-    """
-    Endpoint to receive an image and return YOLOv8 predictions.
-    """
     if model is None:
         raise HTTPException(status_code=503, detail="Model is not loaded")
 
-    # Read the image file
     contents = await file.read()
     image = Image.open(io.BytesIO(contents))
 
-    # Save the image
     image_path = os.path.join(settings.INFERENCE_IMAGES_PATH, f"{uuid.uuid4()}.png")
     image.save(image_path)
 
-    # Perform inference
     results = model(image, conf=confidence, iou=overlap, device=settings.DEVICE)
 
-    # Format the results
     predictions = []
     for result in results:
         boxes = result.boxes.cpu().numpy()
         for box in boxes:
             xywh = box.xywh[0]
-            
             predictions.append({
                 "x": float(xywh[0]),
                 "y": float(xywh[1]),

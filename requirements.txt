@@ -3,7 +3,6 @@ uvicorn
 python-multipart
 ultralytics
 Pillow
-PyYAML
+pydantic-settings
 pytest
 httpx
-pydantic-settings

@@ -3,15 +3,13 @@ from fastapi.responses import JSONResponse
 from config import settings
 import os
 import logging
-from routers import predict, retrain, models
+from routers import predict
 
-# --- Logging Configuration ---
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-app = FastAPI(title="YOLOv8 Inference and Retraining API")
+app = FastAPI(title="YOLOv8 Inference API")
 
-# --- Exception Handlers ---
 @app.exception_handler(HTTPException)
 async def http_exception_handler(request: Request, exc: HTTPException):
     return JSONResponse(
@@ -27,26 +25,14 @@ async def generic_exception_handler(request: Request, exc: Exception):
         content={"message": "An unexpected error occurred"},
     )
 
-# --- Routers ---
 app.include_router(predict.router)
-app.include_router(retrain.router)
-app.include_router(models.router)
 
-# --- Startup Operations ---
 @app.on_event("startup")
 async def startup_event():
-    """
-    Create directories on startup.
-    """
     os.makedirs(settings.INFERENCE_IMAGES_PATH, exist_ok=True)
-    os.makedirs(settings.DATASETS_PATH, exist_ok=True)
     logger.info("Directories created successfully")
     predict.load_model()
 
-# --- Root Endpoint ---
 @app.get("/")
 def read_root():
-    """
-    Root endpoint to check if the API is running.
-    """
     return {"status": "API is running"}

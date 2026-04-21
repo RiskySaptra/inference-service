@@ -9,6 +9,7 @@ __pycache__/
 # Distribution / packaging
 .Python
 build/
+models/
 develop-eggs/
 dist/
 downloads/
@@ -121,12 +122,6 @@ dmypy.json
 # *.pt
 # *.pth
 # *.onnx
-
-# Datasets
-datasets/ 
-
-# Training runs
-training_runs/
 
 # Inference images
 inference_images/
