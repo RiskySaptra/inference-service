@@ -1,15 +1,16 @@
-FROM nvidia/cuda:12.6.3-base-ubuntu22.04
+FROM nvidia/cuda:12.6.3-runtime-ubuntu22.04
 
 LABEL description="YOLOv8 Inference API"
 
-ENV PYTHONDONTWRITEBYTECODE 1
-ENV PYTHONUNBUFFERED 1
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     python3 \
     python3-pip \
     libgl1 \
     libglib2.0-0 \
+    curl \
     && rm -rf /var/lib/apt/lists/*
 
 RUN addgroup --system app && adduser --system --group app
@@ -17,8 +18,8 @@ RUN addgroup --system app && adduser --system --group app
 WORKDIR /app
 
 COPY requirements.txt .
+RUN pip3 install --prefer-binary torch torchvision --index-url https://download.pytorch.org/whl/cu126
 RUN pip3 install --prefer-binary -r requirements.txt
-RUN pip3 install torch torchvision --index-url https://download.pytorch.org/whl/cu126
 
 COPY . .
 
