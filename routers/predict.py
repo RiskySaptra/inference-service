@@ -30,7 +30,6 @@ class Prediction(BaseModel):
 
 class PredictResponse(BaseModel):
     predictions: List[Prediction]
-    count: int
 
 class ErrorResponse(BaseModel):
     message: str
