@@ -6,6 +6,7 @@ from pydantic import BaseModel
 import io
 import uuid
 import os
+import torch
 from ultralytics import YOLO
 from config import settings
 from security import get_api_key
@@ -37,8 +38,14 @@ class ErrorResponse(BaseModel):
 def load_model():
     global model
     try:
-        model = YOLO(settings.MODEL_PATH)
-        model.to(settings.DEVICE)
+        if settings.DEVICE == "cpu":
+            _orig_load = torch.load
+            torch.load = lambda *a, **k: _orig_load(*a, **{**k, "map_location": "cpu"})
+            model = YOLO(settings.MODEL_PATH)
+            torch.load = _orig_load
+        else:
+            model = YOLO(settings.MODEL_PATH)
+            model.to(settings.DEVICE)
         print("Model loaded successfully")
     except Exception as e:
         print(f"Error loading model: {e}")
