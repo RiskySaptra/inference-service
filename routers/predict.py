@@ -38,6 +38,16 @@ class ErrorResponse(BaseModel):
 def load_model():
     global model
     try:
+        cuda_available = torch.cuda.is_available()
+        print(f"CUDA available: {cuda_available}")
+        if cuda_available:
+            print(f"CUDA devices: {torch.cuda.device_count()}")
+            for i in range(torch.cuda.device_count()):
+                print(f"  GPU {i}: {torch.cuda.get_device_name(i)}")
+        else:
+            print("Running on CPU")
+        print(f"Configured device: {settings.DEVICE}")
+
         if settings.DEVICE == "cpu":
             _orig_load = torch.load
             torch.load = lambda *a, **k: _orig_load(*a, **{**k, "map_location": "cpu"})
@@ -45,7 +55,6 @@ def load_model():
             torch.load = _orig_load
         else:
             model = YOLO(settings.MODEL_PATH)
-            model.to(settings.DEVICE)
         print("Model loaded successfully")
     except Exception as e:
         print(f"Error loading model: {e}")
