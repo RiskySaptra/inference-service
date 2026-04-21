@@ -1,5 +1,8 @@
 from fastapi import APIRouter, File, UploadFile, Query, HTTPException, Depends
+from fastapi.security import APIKeyHeader
 from PIL import Image
+from typing import List, Optional
+from pydantic import BaseModel
 import io
 import uuid
 import os
@@ -7,9 +10,29 @@ from ultralytics import YOLO
 from config import settings
 from security import get_api_key
 
-router = APIRouter(dependencies=[Depends(get_api_key)])
+router = APIRouter(
+    dependencies=[Depends(get_api_key)],
+    tags=["predict"],
+)
 
 model = None
+
+class Prediction(BaseModel):
+    x: float
+    y: float
+    width: float
+    height: float
+    confidence: float
+    class_name: str
+    class_id: int
+    detection_id: str
+
+class PredictResponse(BaseModel):
+    predictions: List[Prediction]
+    count: int
+
+class ErrorResponse(BaseModel):
+    message: str
 
 def load_model():
     global model
@@ -19,11 +42,21 @@ def load_model():
     except Exception as e:
         print(f"Error loading model: {e}")
 
-@router.post("/predict/")
+@router.post(
+    "/predict/",
+    response_model=PredictResponse,
+    summary="Detect objects in an image",
+    description="Upload an image and get YOLOv8 object detections with bounding boxes, class labels, and confidence scores.",
+    responses={503: {"model": ErrorResponse}},
+)
 async def predict(
-    file: UploadFile = File(...),
-    confidence: float = Query(0.5, ge=0.0, le=1.0),
-    overlap: float = Query(0.5, ge=0.0, le=1.0)
+    file: UploadFile = File(..., description="Image file to process"),
+    confidence: float = Query(0.25, ge=0.0, le=1.0, description="Confidence threshold"),
+    overlap: float = Query(0.45, ge=0.0, le=1.0, description="IoU threshold for NMS"),
+    imgsz: int = Query(640, ge=320, le=1280, description="Inference image size"),
+    max_det: int = Query(50, ge=1, le=200, description="Maximum detections per image"),
+    augment: bool = Query(False, description="Enable test-time augmentation"),
+    agnostic_nms: bool = Query(False, description="Enable class-agnostic NMS"),
 ):
     if model is None:
         raise HTTPException(status_code=503, detail="Model is not loaded")
@@ -34,22 +67,23 @@ async def predict(
     image_path = os.path.join(settings.INFERENCE_IMAGES_PATH, f"{uuid.uuid4()}.png")
     image.save(image_path)
 
-    results = model(image, conf=confidence, iou=overlap, device=settings.DEVICE)
+    results = model(image, conf=confidence, iou=overlap, imgsz=imgsz, max_det=max_det, augment=augment, agnostic_nms=agnostic_nms, device=settings.DEVICE)
 
     predictions = []
     for result in results:
         boxes = result.boxes.cpu().numpy()
         for box in boxes:
             xywh = box.xywh[0]
+            cls_id = int(box.cls[0])
             predictions.append({
                 "x": float(xywh[0]),
                 "y": float(xywh[1]),
                 "width": float(xywh[2]),
                 "height": float(xywh[3]),
                 "confidence": float(box.conf[0]),
-                "class": str(int(box.cls[0])),
-                "class_id": int(box.cls[0]),
+                "class_name": model.names.get(cls_id, str(cls_id)),
+                "class_id": cls_id,
                 "detection_id": str(uuid.uuid4())
             })
 
-    return {"predictions": predictions}
+    return {"predictions": predictions, "count": len(predictions)}

@@ -8,7 +8,11 @@ from routers import predict
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-app = FastAPI(title="YOLOv8 Inference API")
+app = FastAPI(
+    title="YOLOv8 Inference API",
+    description="Object detection API powered by YOLOv8",
+    version="1.0.0",
+)
 
 @app.exception_handler(HTTPException)
 async def http_exception_handler(request: Request, exc: HTTPException):

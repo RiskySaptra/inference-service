@@ -1,186 +1,131 @@
-# YOLOv8 Inference and Retraining API
+# YOLOv8 Inference API
 
-This project provides a robust and scalable API for performing object detection using a custom YOLOv8 model. The API is built with FastAPI and includes features such as automated retraining, persistent job storage, and API key security.
+FastAPI service for object detection using YOLOv8, with Docker support and API key authentication.
 
 ## Project Structure
 
 ```
 .
-├── Dockerfile
-├── main.py
-├── config.py
-├── database.py
-├── security.py
-├── retraining_worker.py
+├── main.py              # FastAPI app, startup, exception handlers
+├── config.py            # Pydantic settings (env-based)
+├── security.py          # API key validation
 ├── routers/
-│   ├── predict.py
-│   ├── retrain.py
-│   └── models.py
-├── tests/
-│   ├── test_predict.py
-│   └── test_retrain.py
+│   └── predict.py       # /predict/ endpoint
 ├── models/
-│   └── your_model.pt
+│   └── best.pt          # YOLOv8 model weights
+├── inference_images/    # Saved inference images
+├── tests/
+│   └── test_predict.py
+├── Dockerfile
+├── docker-compose.yml
+├── .env.example
 └── requirements.txt
 ```
 
-## Getting Started
+## Setup
 
-### Prerequisites
+1. **Configure environment:**
+   ```bash
+   cp .env.example .env
+   ```
+   Edit `.env` — set `API_KEY` and adjust `MODEL_PATH` / `DEVICE` as needed.
 
-- Docker
-- Python 3.9+
+2. **Place your model** in `models/` (default: `models/best.pt`).
 
-### Setup
+3. **Run with Docker:**
+   ```bash
+   docker compose up --build
+   ```
+   Or in the background:
+   ```bash
+   docker compose up --build -d
+   ```
 
-1.  **Clone the repository:**
-    ```bash
-    git clone <your-repo-url>
-    cd <your-repo-directory>
-    ```
-
-2.  **Configure the application:**
-    - Create a `.env` file in the root directory and add the following environment variables:
-      ```
-      MODEL_PATH=models/your_model.pt
-      API_KEY=your-secret-api-key
-      ```
-    - Place your custom YOLOv8 model file (e.g., `your_model.pt`) into the `models/` directory.
-
-3.  **Run with Docker Compose:**
-    ```bash
-    docker compose up --build
-    ```
-    This command will build the Docker image and start the API service. To run it in the background, add the `-d` flag.
-
-## API Usage
-
-All endpoints are protected by an API key. You must include the `X-API-Key` header in your requests.
-
-### Predict Endpoint
-
-- **URL:** `/predict/`
-- **Method:** `POST`
-- **Headers:**
-  - `X-API-Key`: Your secret API key.
-- **Body:** `multipart/form-data`
-  - `file`: The image file to be processed.
-- **Query Parameters:**
-  - `confidence`: (optional) The confidence threshold for predictions (default: 0.5).
-  - `overlap`: (optional) The overlap (IoU) threshold for non-maximum suppression (default: 0.5).
-
-#### Example Request (using cURL)
+## Local Development
 
 ```bash
-curl -X POST "http://localhost:80/predict/?confidence=0.7&overlap=0.6" -H "accept: application/json" -H "X-API-Key: your-secret-api-key" -H "Content-Type: multipart/form-data" -F "file=@/path/to/your/image.jpg"
+pip install -r requirements.txt
+uvicorn main:app --reload
 ```
 
-### Automated Retraining API
+API available at `http://127.0.0.1:8000`.
 
-#### Upload and Retrain Endpoint
+## API Reference
 
-- **URL:** `/retrain/upload/`
-- **Method:** `POST`
-- **Headers:**
-  - `X-API-Key`: Your secret API key.
-- **Body:** `multipart/form-data`
-  - `file`: A ZIP file containing the new dataset in YOLOv8 format.
+All endpoints require the `X-API-Key` header.
 
-#### Example Request (using cURL)
+### Health Check
+
+```
+GET /
+```
+
+### Predict
+
+```
+POST /predict/
+```
+
+**Headers:** `X-API-Key: <your-key>`
+
+**Body:** `multipart/form-data`
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `file` | file | yes | Image to process |
+
+**Query Parameters:**
+
+| Parameter | Type | Default | Range | Description |
+|-----------|------|---------|-------|-------------|
+| `confidence` | float | 0.25 | 0.0–1.0 | Confidence threshold |
+| `overlap` | float | 0.45 | 0.0–1.0 | IoU threshold (NMS) |
+| `imgsz` | int | 640 | 320–1280 | Inference image size |
+| `max_det` | int | 50 | 1–200 | Max detections per image |
+| `augment` | bool | False | — | Test-time augmentation |
+| `agnostic_nms` | bool | False | — | Class-agnostic NMS |
+
+**Example:**
 
 ```bash
-curl -X POST "http://localhost:80/retrain/upload/" -H "accept: application/json" -H "X-API-Key: your-secret-api-key" -H "Content-Type: multipart/form-data" -F "file=@/path/to/your/dataset.zip"
+curl -X POST "http://localhost:8000/predict/?confidence=0.3&augment=true" \
+  -H "X-API-Key: your-secret-api-key" \
+  -F "file=@image.jpg"
 ```
 
-#### Check Retraining Status Endpoint
-
-- **URL:** `/retrain/status/{task_id}`
-- **Method:** `GET`
-- **Headers:**
-  - `X-API-Key`: Your secret API key.
-
-#### Example Request (using cURL)
-
-```bash
-curl -X GET "http://localhost:80/retrain/status/your-task-id" -H "accept: application/json" -H "X-API-Key: your-secret-api-key"
-```
-
-##### Example Response
+**Response:**
 
 ```json
 {
-"task_id": "your-task-id",
-"status": "training model",
-"progress": "45.20%"
+  "predictions": [
+    {
+      "x": 320.5,
+      "y": 240.2,
+      "width": 100.0,
+      "height": 80.0,
+      "confidence": 0.92,
+      "class": "person",
+      "class_id": 0,
+      "detection_id": "uuid"
+    }
+  ],
+  "count": 1
 }
 ```
 
-### Model Management API
+## Configuration
 
-#### List Models Endpoint
+Set via `.env` or environment variables:
 
-- **URL:** `/models/`
-- **Method:** `GET`
-- **Headers:**
-- `X-API-Key`: Your secret API key.
-
-##### Example Request (using cURL)
-
-```bash
-curl -X GET "http://localhost:80/models/" -H "accept: application/json" -H "X-API-Key: your-secret-api-key"
-```
-
-##### Example Response
-
-```json
-{
-"models": [
-"task-id-1",
-"task-id-2"
-]
-}
-```
-
-#### Set Active Model Endpoint
-
-- **URL:** `/models/set_active/`
-- **Method:** `POST`
-- **Headers:**
-- `X-API-Key`: Your secret API key.
-- **Body:** `application/json`
-- `task_id`: The ID of the model to set as active.
-
-##### Example Request (using cURL)
-
-```bash
-curl -X POST "http://localhost:80/models/set_active/" -H "accept: application/json" -H "X-API-Key: your-secret-api-key" -H "Content-Type: application/json" -d '{"task_id": "your-task-id"}'
-```
-
-##### Example Response
-
-```json
-{
-"message": "Model your-task-id set as active and reloaded"
-}
-```
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `MODEL_PATH` | `models/best.pt` | Path to YOLOv8 weights |
+| `DEVICE` | `cpu` | `cpu` or `cuda` |
+| `INFERENCE_IMAGES_PATH` | `inference_images` | Directory for saved images |
+| `API_KEY` | `your-secret-api-key` | API authentication key |
 
 ## Testing
-
-To run the tests, use the following command:
 
 ```bash
 pytest
 ```
-
-## Local Development (Without Docker)
-
-1.  **Install dependencies:**
-    ```bash
-    pip install -r requirements.txt
-    ```
-
-2.  **Run the application:**
-    ```bash
-    uvicorn main:app --reload
-    ```
-    The API will be available at `http://127.0.0.1:8000`.
