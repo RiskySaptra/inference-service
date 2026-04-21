@@ -1,4 +1,4 @@
-from fastapi import APIRouter, File, UploadFile, Query, HTTPException, Depends
+from fastapi import APIRouter, File, UploadFile, Query, Form, HTTPException, Depends
 from fastapi.security import APIKeyHeader
 from PIL import Image
 from typing import List, Optional
@@ -38,6 +38,7 @@ def load_model():
     global model
     try:
         model = YOLO(settings.MODEL_PATH)
+        model.to(settings.DEVICE)
         print("Model loaded successfully")
     except Exception as e:
         print(f"Error loading model: {e}")
@@ -51,12 +52,12 @@ def load_model():
 )
 async def predict(
     file: UploadFile = File(..., description="Image file to process"),
-    confidence: float = Query(0.25, ge=0.0, le=1.0, description="Confidence threshold"),
-    overlap: float = Query(0.45, ge=0.0, le=1.0, description="IoU threshold for NMS"),
-    imgsz: int = Query(640, ge=320, le=1280, description="Inference image size"),
-    max_det: int = Query(50, ge=1, le=200, description="Maximum detections per image"),
-    augment: bool = Query(False, description="Enable test-time augmentation"),
-    agnostic_nms: bool = Query(False, description="Enable class-agnostic NMS"),
+    confidence: float = Form(0.45, ge=0.0, le=1.0, description="Confidence threshold"),
+    overlap: float = Form(0.45, ge=0.0, le=1.0, description="IoU threshold for NMS"),
+    imgsz: int = Form(640, ge=320, le=1280, description="Inference image size"),
+    max_det: int = Form(50, ge=1, le=200, description="Maximum detections per image"),
+    augment: bool = Form(True, description="Enable test-time augmentation"),
+    agnostic_nms: bool = Form(True, description="Enable class-agnostic NMS"),
 ):
     if model is None:
         raise HTTPException(status_code=503, detail="Model is not loaded")
@@ -86,4 +87,4 @@ async def predict(
                 "detection_id": str(uuid.uuid4())
             })
 
-    return {"predictions": predictions, "count": len(predictions)}
+    return {"predictions": predictions}

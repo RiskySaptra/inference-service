@@ -78,12 +78,12 @@ POST /predict/
 
 | Parameter | Type | Default | Range | Description |
 |-----------|------|---------|-------|-------------|
-| `confidence` | float | 0.25 | 0.0–1.0 | Confidence threshold |
+| `confidence` | float | 0.45 | 0.0–1.0 | Confidence threshold |
 | `overlap` | float | 0.45 | 0.0–1.0 | IoU threshold (NMS) |
 | `imgsz` | int | 640 | 320–1280 | Inference image size |
 | `max_det` | int | 50 | 1–200 | Max detections per image |
-| `augment` | bool | False | — | Test-time augmentation |
-| `agnostic_nms` | bool | False | — | Class-agnostic NMS |
+| `augment` | bool | True | — | Test-time augmentation |
+| `agnostic_nms` | bool | True | — | Class-agnostic NMS |
 
 **Example:**
 
